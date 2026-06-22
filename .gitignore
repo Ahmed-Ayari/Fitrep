@@ -1,14 +1,16 @@
 # Python virtual environment
-/.venv
+venv/
+.venv/
+env/
 
 # Pyhon cache files
-* __pycache__/
+app/__pycache__/
 
 # Model files
-*yolov8n-pose.pt
-
-# Videos i tested with
-./sample_videos
+yolov8n-pose.pt
 
 # Created automatically on endpoint
-./uploads
+uploads
+
+# Videos i tested with
+sample_videos
