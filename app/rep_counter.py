@@ -1,12 +1,15 @@
 class RepCounter:
-    def __init__(self, down_threshold=140, up_threshold=50):
-        self.state = 'DOWN'
+    def __init__(self, down_threshold, up_threshold):
+        self.state = 'init'
         self.count = 0
         self.down_threshold = down_threshold
         self.up_threshold = up_threshold
 
     def update(self, angle):
-        if self.state == 'DOWN' and angle < self.up_threshold:
+        if self.state == 'init':
+            if angle > self.down_threshold:
+                self.state = 'DOWN'
+        elif self.state == 'DOWN' and angle < self.up_threshold:
             self.state = 'UP'
 
         elif self.state == 'UP' and angle > self.down_threshold:
@@ -15,7 +18,7 @@ class RepCounter:
 
     def reset(self):
         self.count = 0
-        self.state = 'DOWN'
+        self.state = 'init'
 
     def get_count(self):
         return self.count

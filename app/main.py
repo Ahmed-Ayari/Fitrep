@@ -1,8 +1,9 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from pathlib import Path
 import os
 
-import schemas
+import config
+#import schemas
 from pose_estimator import PoseEstimator
 
 upload_path = Path("uploads")
@@ -15,10 +16,13 @@ app = FastAPI()
 pose_estimator = PoseEstimator()
 
 @app.post("/analyze")
-async def analyze_video(file: UploadFile = File(...), exercise: schemas.Exercice = None):
+async def analyze_video(file: UploadFile = File(...), exercise : str = Form(None)):
     try:
         if not Path(file.filename.lower()).suffix.lstrip('.') in allowed_extensions:
             raise HTTPException(status_code=400, detail="Invalid file type. Only video files are allowed.")
+        
+        if exercise and exercise not in config.EXERCISES:
+            raise HTTPException(status_code=400, detail=f"Invalid exercise type. Supported exercises: {', '.join(config.EXERCISES.keys())}")
 
         file_location = upload_path / file.filename
 
@@ -35,4 +39,4 @@ async def analyze_video(file: UploadFile = File(...), exercise: schemas.Exercice
         if file_location and os.path.exists(file_location):
             os.remove(file_location)    
 
-    return schemas.ResponseModel(rep_count=response["total_reps"], final_state=response["final_state"])
+    return {"rep_count": response["total_reps"], "final_state": response["final_state"]}

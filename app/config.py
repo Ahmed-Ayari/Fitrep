@@ -6,7 +6,7 @@ EXERCISES = {
     },
     "squat": {
         "keypoints": (12, 14, 16),  
-        "up_threshold": 90,
+        "up_threshold": 80,
         "down_threshold": 160
     },
 }

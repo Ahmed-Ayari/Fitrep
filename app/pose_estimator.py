@@ -8,9 +8,14 @@ import config
 class PoseEstimator:
     def __init__(self, model_path="yolov8n-pose.pt"):
         self.model = YOLO(model_path)  # load the YOLOv8n-pose model
-        self.rep_counter = rep_counter.RepCounter()  # initialize rep counter
 
-    def process_video(self, video_path, exercise = "bicep_curl"):
+    def process_video(self, video_path, exercise):
+
+        rep_count = rep_counter.RepCounter(
+            down_threshold=config.EXERCISES[exercise]["down_threshold"],
+            up_threshold=config.EXERCISES[exercise]["up_threshold"]
+        )
+    
         cap = cv2.VideoCapture(video_path)  # open the video file
         frame_index = 0  # initialize frame index
 
@@ -35,14 +40,14 @@ class PoseEstimator:
                     filtered_keypoints[0][1], # point b
                     filtered_keypoints[0][2]  # point c
                 )
-                self.rep_counter.update(angle)
+                rep_count.update(angle)
 
             frame_index += 1 
         cap.release()
 
         return {
-            "total_reps": self.rep_counter.get_count(),
-            "final_state": self.rep_counter.get_state()
+            "total_reps": rep_count.get_count(),
+            "final_state": rep_count.get_state()
         }
 
     def confidence_filter(self, keypoints_list, exercise_keypoints = None, confidence_threshold=0.5):
