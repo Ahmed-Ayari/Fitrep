@@ -1,0 +1,14 @@
+# Python virtual environment
+/.venv
+
+# Pyhon cache files
+* __pycache__/
+
+# Model files
+*yolov8n-pose.pt
+
+# Videos i tested with
+./sample_videos
+
+# Created automatically on endpoint
+./uploads
