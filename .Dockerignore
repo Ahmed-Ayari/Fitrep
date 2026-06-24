@@ -1,0 +1,34 @@
+# Virtual environment
+.venv/
+venv/
+
+# Cache
+__pycache__/
+.pytest_cache/
+
+# MLflow generated files
+mlruns/
+mlflow.db
+
+# Uploads and test videos
+uploads/
+sample_videos/
+
+# Environment variables
+.env
+
+# Dev/test files
+app/threshhold_test.py
+tests/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Model files
+yolov8n-pose.pt

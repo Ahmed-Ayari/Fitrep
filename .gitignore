@@ -2,9 +2,13 @@
 venv/
 .venv/
 env/
+install-pyenv-win.ps1
+.python-version
+*.pytest_cache/
+.env
 
 # Pyhon cache files
-app/__pycache__/
+__pycache__/
 
 # Model files
 yolov8n-pose.pt
@@ -15,4 +19,17 @@ uploads
 # Videos i tested with
 sample_videos
 
+#Script to capture different exercice threshholds
 app/threshhold_test.py
+
+#MLflow
+mlflow.db
+mlruns/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
