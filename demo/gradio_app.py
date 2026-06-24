@@ -7,10 +7,10 @@ import os
 
 load_dotenv()
 
-sys.path.append(str(Path(__file__).resolve().parent.parent / "app"))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.append(str(PROJECT_ROOT))
 
-import config
-
+from app import config
 API_URL = os.getenv("API_URL")
 
 exercice_list = config.EXERCISES.keys()

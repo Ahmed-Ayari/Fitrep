@@ -3,7 +3,6 @@ venv/
 .venv/
 env/
 install-pyenv-win.ps1
-.python-version
 *.pytest_cache/
 .env
 

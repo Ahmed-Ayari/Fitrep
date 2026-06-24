@@ -4,11 +4,10 @@ import os
 import sys
 from pathlib import Path
 
-current_dir = Path(__file__).resolve().parent
-project_root = current_dir.parent
-sys.path.append(str(project_root/"mlflow"))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.append(str(PROJECT_ROOT))
 
-import tracking
+from mlflow_tracking import tracking
 import config
 #import schemas
 from pose_estimator import PoseEstimator
