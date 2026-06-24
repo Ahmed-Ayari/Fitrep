@@ -11,7 +11,7 @@ EXERCISES = {
     },
     "push_up": {
         "keypoints": (6, 8, 10),  
-        "up_threshold": 50,
+        "up_threshold": 80,
         "down_threshold": 140
     },
 }

@@ -1,109 +1,203 @@
-Week 1: Core ML Pipeline
-Day 1 -- Setup + YOLOv8 inference working
-Goal: a single script that takes a video file, runs YOLOv8-Pose on each frame, and prints keypoint coordinates to console.
-Tasks:
+# FitRep
 
-Create the venv, install Ultralytics, OpenCV, NumPy
-Read the YOLOv8-Pose docs and understand the 17 COCO keypoints and their index numbers (this is mandatory, you'll be asked about this in interviews)
-Write pose_estimator.py: load model, run inference on a video frame by frame, extract keypoints array
-Test on any video of a person moving
+A real-time AI-powered rep counter that uses pose estimation to track your workout reps from video input.
 
-Deliverable: terminal output showing keypoint coordinates updating per frame.
-Day 2 -- Joint angle calculator
-Goal: calculate the angle at any joint given three keypoints.
-Tasks:
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green)
+![YOLOv8](https://img.shields.io/badge/YOLOv8-Pose-red)
+![MLflow](https://img.shields.io/badge/MLflow-Tracking-orange)
+![Docker](https://img.shields.io/badge/Docker-Containerized-blue)
+![Gradio](https://img.shields.io/badge/Gradio-Demo-yellow)
 
-Write angle_calculator.py with a calculate_angle(a, b, c) function where b is the vertex joint. This uses the dot product / arctan2 approach, I'll explain the math if needed.
-Map the exercises to their relevant keypoints:
+---
 
-Bicep curl: shoulder (5/6), elbow (7/8), wrist (9/10)
-Squat: hip (11/12), knee (13/14), ankle (15/16)
-Pushup: shoulder (5/6), elbow (7/8), wrist (9/10) + hip angle for form
+## What it does
 
+Upload a workout video, select your exercise, and FitRep will:
 
-Visualize the angle overlaid on the video frame using OpenCV so you can see it working
+- Detect your body keypoints using YOLOv8-Pose
+- Calculate joint angles frame by frame
+- Count reps using a state machine with configurable angle thresholds
+- Return rep count, confidence scores, and angle statistics
+- Log every run to MLflow for experiment tracking
 
-Deliverable: video output with joint angles displayed on screen in real time.
-Day 3 -- Rep counting state machine
-Goal: count reps reliably without false positives.
-Tasks:
+---
 
-Write rep_counter.py as a simple state machine: two states, UP and DOWN, defined by angle thresholds
+## Supported Exercises
 
-Example for curl: DOWN when elbow angle < 50 degrees, UP when elbow angle > 150 degrees
-A rep completes on the UP to DOWN to UP transition
+| Exercise | Keypoints Used |
+|----------|---------------|
+| Bicep Curl | Shoulder, Elbow, Wrist |
+| Squat | Hip, Knee, Ankle |
+| Push Up | Shoulder, Elbow, Wrist |
 
+---
 
-Handle edge cases: keypoint confidence thresholds (ignore low-confidence detections), smoothing with a small angle buffer to avoid jitter triggering false counts
-Test on multiple videos with different people and lighting
+## Tech Stack
 
-Deliverable: terminal shows rep count incrementing correctly on a test video.
-Day 4 -- FastAPI backend
-Goal: expose the pipeline as a REST API.
-Tasks:
+| Layer | Tool |
+|-------|------|
+| Pose Estimation | YOLOv8-Pose (Ultralytics) |
+| Angle Calculation | NumPy + arctan2 |
+| Rep Counting | Custom state machine |
+| API | FastAPI + Uvicorn |
+| Experiment Tracking | MLflow |
+| Demo UI | Gradio |
+| Containerization | Docker |
 
-Write schemas.py with Pydantic models for request (video file upload, exercise type) and response (rep count, average angle range, keypoints per frame, processing time)
-Write main.py with two endpoints:
+---
 
-POST /analyze -- accepts video file upload, returns full analysis JSON
-GET /health -- returns service status
+## Project Structure
 
+```
+fitrep/
+├── app/
+│   ├── main.py              # FastAPI app
+│   ├── pose_estimator.py    # YOLOv8 inference + keypoint extraction
+│   ├── config.py            # Exercise configs and thresholds
+│   ├── angle_calculator.py  # Joint angle logic
+│   └── rep_counter.py       # Rep counting state machine
+├── demo/
+│   └── gradio_app.py        # Gradio frontend
+├── mlflow/
+│   └── tracking.py          # MLflow experiment logging
+├── tests/
+│   └── test_rep_counter.py  # Unit tests
+├── Dockerfile
+├── requirements.txt
+├── .env.example
+└── README.md
+```
 
-Add exercise type selection: curl, squat, pushup
-Test with curl or Postman
+---
 
-Deliverable: API running locally, returning JSON rep count from a video upload.
-Day 5 -- MLflow tracking + tests
-Goal: add observability and basic test coverage.
-Tasks:
+## How it works
 
-Write tracking.py: log each analysis run to MLflow with parameters (exercise type, video length, fps) and metrics (rep count, avg confidence score, processing time per frame)
-Run MLflow UI locally and verify runs are logging correctly
-Write unit tests in tests/ for the angle calculator and rep counter state machine, these are pure logic functions so they're easy to test
-Fix any bugs surfaced by the tests
+1. Video is uploaded and passed to the pose estimator
+2. YOLOv8-Pose extracts body keypoints per frame
+3. A confidence filter drops frames with unreliable keypoints
+4. Joint angles are calculated using arctan2 on the three relevant keypoints
+5. A rolling average smooths the angle signal to reduce noise
+6. The state machine transitions between `init`, `DOWN`, and `UP` states to count reps
+7. MLflow logs the exercise, thresholds, rep count, confidence, and angle stats
 
-Deliverable: MLflow UI showing logged runs, all tests passing.
+---
 
-Week 2: Engineering Layer
-Day 6-7 -- Docker
+## Setup
 
-Write the Dockerfile: Python base image, copy app, install requirements, expose port, run Uvicorn
-Test the container locally: build, run, hit the API from outside the container
-Write docker-compose.yml to run the API and MLflow server together
+### Local
 
-Day 8-9 -- Gradio frontend
+```bash
+# Clone the repo
+git clone https://github.com/yourusername/fitrep.git
+cd fitrep
 
-Write gradio_app.py: video upload input, exercise type dropdown, submit button, output shows rep count + annotated video with pose overlay and angle display
-Make it visually clean, this is what people see in your README
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-Day 10 -- Polish and README
+# Install dependencies
+pip install -r requirements.txt
 
-Record a demo GIF of the Gradio app working (use a screen recorder, keep it under 5 seconds, shows pose overlay + rep counter incrementing)
-Write the README: what it does, how to run locally, how to run with Docker, architecture diagram (optional but impressive), demo GIF at the top
-Push everything to GitHub with a clean commit history, not one giant initial commit
+# Copy environment variables
+cp .env.example .env
 
+# Start the API
+fastapi dev
 
-Week 3: Deployment + CV Integration
-Day 11-12 -- Hugging Face Spaces deployment
+# In a separate terminal, start the Gradio demo
+python demo/gradio_app.py
+```
 
-Create a Hugging Face account if you don't have one
-Deploy the Gradio app to HF Spaces (it supports Gradio natively, free tier is enough)
-Include sample videos in the repo so reviewers can test it without needing their own footage
+### Docker
 
-Day 13 -- Stress test and edge cases
+```bash
+docker build -t fitrep .
+docker run -p 8000:8000 fitrep
+```
 
-Test with varied videos: different lighting, different body sizes, partial occlusion, fast vs slow reps
-Document known limitations honestly in the README, interviewers respect this more than overclaiming
+---
 
-Day 14 -- CV and GitHub update
-Update both CVs with the project:
-FitRep: AI Exercise Rep Counter
-- Built a real-time pose estimation pipeline using YOLOv8-Pose and OpenCV, 
-  detecting 17 body keypoints to classify and count exercise repetitions 
-  across 3 movement types.
-- Implemented a joint angle state machine in NumPy handling confidence 
-  thresholding and jitter smoothing for robust rep detection.
-- Deployed as a FastAPI service containerized with Docker, with experiment 
-  tracking via MLflow and a live Gradio demo on Hugging Face Spaces.
-- Stack: Python, YOLOv8, OpenCV, FastAPI, Docker, MLflow, Gradio, 
-  Hugging Face Spaces
+## API
+
+### `POST /analyze`
+
+Analyzes a workout video and returns rep count and angle statistics.
+
+**Request**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `file` | video file | `.mp4`, `.avi`, `.mkv`, or `.mov` |
+| `exercise` | string | `bicep_curl`, `squat`, or `push_up` |
+
+**Response**
+
+```json
+{
+  "exercise": "bicep_curl",
+  "up_threshold": 50,
+  "down_threshold": 140,
+  "rep_count": 10,
+  "final_state": "DOWN",
+  "max_angle": 158.3,
+  "min_angle": 28.7,
+  "average_up_angle": 42.1,
+  "average_down_angle": 151.6,
+  "avg_confidence": 0.87,
+  "min_confidence": 0.61
+}
+```
+
+---
+
+## Experiment Tracking
+
+FitRep logs every analysis run to MLflow with:
+
+- **Params:** exercise type, up/down thresholds
+- **Metrics:** rep count, avg confidence, min confidence, max/min/average angles
+
+To view the MLflow dashboard:
+
+```bash
+mlflow ui
+```
+
+Then open `http://localhost:5000` in your browser.
+
+---
+
+## Tests
+
+```bash
+pytest tests/test.py -v
+```
+
+Covers angle calculation correctness and rep counter state machine logic.
+
+---
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and update the values:
+
+```env
+API_URL=http://localhost:8000/analyze
+```
+
+---
+
+## Roadmap
+
+- [ ] Automatic exercise detection via keypoint-based classifier
+- [ ] Real-time webcam support
+- [ ] Rep tempo tracking (time under tension)
+- [ ] Mobile frontend via React Native
+- [ ] Multi-person support
+
+---
+
+## License
+
+MIT

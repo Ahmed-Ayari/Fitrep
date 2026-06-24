@@ -5,6 +5,7 @@ import cv2
 from angle_calculator import calculate_angle
 import rep_counter 
 import config
+from collections import deque
 
 class PoseEstimator:
     def __init__(self, model_path="yolov8n-pose.pt"):
@@ -12,8 +13,11 @@ class PoseEstimator:
 
     def process_video(self, video_path, exercise):
 
+        angle_buffer = deque(maxlen=5)
+
         angle_list = []
         filtered_keypoints = []
+        confidence_list = []
 
         down_threshold = config.EXERCISES[exercise]["down_threshold"]
         up_threshold = config.EXERCISES[exercise]["up_threshold"]
@@ -47,8 +51,11 @@ class PoseEstimator:
                     filtered_keypoints[0][0][1], # point b
                     filtered_keypoints[0][0][2]  # point c
                 )
-                rep_count.update(angle)
+                angle_buffer.append(angle)
+                smoothed_angle = float(np.mean(angle_buffer))
+                rep_count.update(smoothed_angle)
                 angle_list.append(angle)
+                confidence_list.extend([conf for _, conf in filtered_keypoints])
 
             frame_index += 1 
         cap.release()
@@ -60,8 +67,8 @@ class PoseEstimator:
         average_up_angle = float(np.mean(angle_list[:len(angle_list)//2]).item()) if angle_list else None
         average_down_angle = float(np.mean(angle_list[len(angle_list)//2:]).item()) if angle_list else None
 
-        avg_confidence = float(np.mean([conf for _, conf in filtered_keypoints])) if filtered_keypoints else None
-        min_confidence = float(np.min([conf for _, conf in filtered_keypoints])) if filtered_keypoints else None
+        avg_confidence = float(np.mean(confidence_list)) if confidence_list else None
+        min_confidence = float(np.min(confidence_list)) if confidence_list else None
 
         return {
             "exercise": exercise,
