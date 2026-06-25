@@ -16,7 +16,7 @@ yolov8n-pose.pt
 uploads
 
 # Videos i tested with
-sample_videos
+sample_videos/
 
 #Script to capture different exercice threshholds
 app/threshhold_test.py
