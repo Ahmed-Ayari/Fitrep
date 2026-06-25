@@ -138,7 +138,7 @@ Analyzes a workout video and returns rep count and angle statistics.
   "exercise": "bicep_curl",
   "up_threshold": 50,
   "down_threshold": 140,
-  "rep_count": 10,
+  "rep_count": 2,
   "final_state": "DOWN",
   "max_angle": 158.3,
   "min_angle": 28.7,
