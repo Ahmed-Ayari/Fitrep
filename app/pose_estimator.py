@@ -31,9 +31,9 @@ class PoseEstimator:
         frame_index = 0  # initialize frame index
 
         if exercise:
-            exercise_keypoints = config.EXERCISES[exercise]["keypoints"]
+            both_keypoints = config.EXERCISES[exercise]["keypoints"]  # dict with left/right tuples
         else:
-            exercise_keypoints = None
+            both_keypoints = None
 
         while cap.isOpened():
             ret, frame = cap.read()  # read a frame from the video
@@ -43,7 +43,7 @@ class PoseEstimator:
             results = self.model(frame, verbose=False)  # predict on the current frame
             
             keypoints_list = self.extract_keypoints(results)
-            filtered_keypoints = self.confidence_filter(keypoints_list, exercise_keypoints)
+            filtered_keypoints = self.confidence_filter(keypoints_list, both_keypoints)
             
             if filtered_keypoints:
                 angle = calculate_angle(
@@ -55,7 +55,7 @@ class PoseEstimator:
                 smoothed_angle = float(np.mean(angle_buffer))
                 rep_count.update(smoothed_angle)
                 angle_list.append(angle)
-                confidence_list.extend([conf for _, conf in filtered_keypoints])
+                confidence_list.extend([conf for _, conf, _ in filtered_keypoints])
 
             frame_index += 1 
         cap.release()
@@ -84,19 +84,33 @@ class PoseEstimator:
             "min_confidence": min_confidence
         }
 
-    def confidence_filter(self, keypoints_list, exercise_keypoints = None, confidence_threshold=0.5):
+    def confidence_filter(self, keypoints_list, both_keypoints=None, confidence_threshold=0.5):
         filtered_keypoints = []
         for keypoints, confidences in keypoints_list:
-            if exercise_keypoints:
-                selected_keypoints = keypoints[list(exercise_keypoints)]
-                selected_confidences = confidences[list(exercise_keypoints)]
+            if both_keypoints:
+                right_idx = list(both_keypoints["right_keypoints"])
+                left_idx  = list(both_keypoints["left_keypoints"])
+ 
+                right_confs = confidences[right_idx]
+                left_confs  = confidences[left_idx]
+ 
+                # pick the side with higher mean confidence
+                if np.mean(right_confs) >= np.mean(left_confs):
+                    selected_keypoints  = keypoints[right_idx]
+                    selected_confidences = right_confs
+                    chosen_side = "right"
+                else:
+                    selected_keypoints  = keypoints[left_idx]
+                    selected_confidences = left_confs
+                    chosen_side = "left"
             else:
-                selected_keypoints = keypoints
+                selected_keypoints   = keypoints
                 selected_confidences = confidences
-
+                chosen_side = None
+ 
             if all(conf > confidence_threshold for conf in selected_confidences):
-                filtered_keypoints.append((selected_keypoints, selected_confidences))
-        
+                filtered_keypoints.append((selected_keypoints, selected_confidences, chosen_side))
+ 
         return filtered_keypoints
         
     def extract_keypoints(self, results):

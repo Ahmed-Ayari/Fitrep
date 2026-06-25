@@ -21,7 +21,7 @@ allowed_extensions = ["mp4", "avi", "mkv", "mov"]
 app = FastAPI()
 
 @app.post("/analyze")
-async def analyze_video(file: UploadFile = File(...), exercise: str = Form(None)):
+async def analyze_video(file: UploadFile = File(...), exercise: str = Form(...)):
     pose_estimator = PoseEstimator()
     if exercise not in config.EXERCISES:
         raise HTTPException(status_code=400, detail=f"Invalid exercise type.")
