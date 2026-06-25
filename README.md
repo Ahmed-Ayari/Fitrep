@@ -176,15 +176,6 @@ pytest tests/test.py -v
 
 Covers angle calculation correctness and rep counter state machine logic.
 
----
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and update the values:
-
-```env
-API_URL=http://localhost:8000/analyze
-```
 
 ---
 
