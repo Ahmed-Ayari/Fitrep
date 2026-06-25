@@ -17,20 +17,26 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # 1. Overwrite the GitHub README with the Hugging Face version inside the runner
+          # 1. Delete the offending folder physically
+          rm -rf sample_videos/
+          
+          # 2. Swap the README (if you are using the two-file method)
           if [ -f README_HF.md ]; then
             mv README_HF.md README.md
           fi
           
-          # 2. Commit the change locally inside the GitHub Action runner environment
+          # 3. DESTROY the git history inside the runner to wipe the memory of the video
+          rm -rf .git
+          
+          # 4. Initialize a brand new git repository from scratch
+          git init
+          git checkout -b main
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          # Remove Sample videos from the git index inside the runner environment
-          git rm -r --cached --ignore-unmatch sample_videos/ || true
-
-          git add README.md
-          git commit -m "Internal: Prepare README for Hugging Face" --allow-empty
           
-          # 3. Force push the modified state to Hugging Face
+          # 5. Add only the clean files and commit them as a single snapshot
+          git add .
+          git commit -m "Automated sync from GitHub"
+          
+          # 6. Force push this clean, history-free snapshot to Hugging Face
           git push --force https://Ahmed-Ayari:$HF_TOKEN@huggingface.co/spaces/Ahmed-Ayari/FitRep main
