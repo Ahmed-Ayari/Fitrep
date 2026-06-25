@@ -25,6 +25,10 @@ jobs:
           # 2. Commit the change locally inside the GitHub Action runner environment
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Remove Sample videos from the git index inside the runner environment
+          git rm -r --cached --ignore-unmatch sample_videos/ || true
+
           git add README.md
           git commit -m "Internal: Prepare README for Hugging Face" --allow-empty
           
