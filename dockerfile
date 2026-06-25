@@ -1,18 +1,14 @@
-# Python Version: 3.11
-FROM python:3.11-slim
-
-# Set the working directory in the container
+FROM python:3.11.9-slim
 WORKDIR /app
-
-# Copy the requirements file into the container and install dependencies
+RUN apt-get update && apt-get install -y \
+    libglib2.0-0 \
+    libxcb1 \
+    libxext6 \
+    libsm6 \
+    libgl1 \
+    && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the application code into the container
 COPY . .
-
-# Network Port
-EXPOSE 5000
-
-# Start the FastAPI application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5000"]
+EXPOSE 7860
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]

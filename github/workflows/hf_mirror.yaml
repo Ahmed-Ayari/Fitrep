@@ -1,0 +1,32 @@
+name: Sync to Hugging Face
+on:
+  push:
+    branches: [main]
+
+jobs:
+  sync-to-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push to HF
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # 1. Overwrite the GitHub README with the Hugging Face version inside the runner
+          if [ -f README_HF.md ]; then
+            mv README_HF.md README.md
+          fi
+          
+          # 2. Commit the change locally inside the GitHub Action runner environment
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Internal: Prepare README for Hugging Face" --allow-empty
+          
+          # 3. Force push the modified state to Hugging Face
+          git push --force https://Ahmed-Ayari:$HF_TOKEN@huggingface.co/spaces/Ahmed-Ayari/FitRep main
